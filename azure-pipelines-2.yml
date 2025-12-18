@@ -1,0 +1,79 @@
+trigger: none
+pool: raju
+
+jobs:
+- job: firstjob 
+  displayName: Terraform init 
+  
+  steps: 
+  # - task: TerraformInstaller@1
+  #   displayName: install
+  #   inputs:
+  #     terraformVersion: 'latest'
+
+  - task: TerraformTask@5
+    displayName: init
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+      backendServiceArm: 'Ritesh-Dec25'
+      backendAzureRmResourceGroupName: 'Ritesh-Dec'
+      backendAzureRmStorageAccountName: 'riteshstg'
+      backendAzureRmContainerName: 'riteshcnt'
+      backendAzureRmKey: 'dev.tfstate'
+  - task: TerraformTask@5
+    displayName: validate
+    inputs:
+      provider: 'azurerm'
+      command: 'validate'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+  - task: TerraformTask@5
+    inputs:
+      provider: 'azurerm'
+      command: 'plan'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+      environmentServiceNameAzureRM: 'Ritesh-Dec25'
+
+- job: securityscan_job
+  displayName: securityscan
+  dependsOn: firstjob
+  pool: raju
+  steps:
+  - task: tfsec@1
+    inputs:
+      version: 'v1.26.0'
+      dir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+
+- job: secondjob
+  displayName: manualapproval
+  dependsOn: securityscan_job
+  pool: server
+  steps:
+  - task: ManualValidation@1
+    inputs:
+      notifyUsers: 'ritesh.shukl8085@gmail.com'
+- job: thirdjob
+  displayName: terraformapply
+  pool: raju
+  dependsOn: secondjob
+  steps:
+  # - task: TerraformInstaller@1
+  #   inputs:
+  #     terraformVersion: 'latest'
+  - task: TerraformTask@5
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+      backendServiceArm: 'Ritesh-Dec25'
+      backendAzureRmStorageAccountName: 'riteshstg'
+      backendAzureRmContainerName: 'riteshcnt'
+      backendAzureRmKey: 'dev.tfstate'
+  - task: TerraformTask@5
+    inputs:
+      provider: 'azurerm'
+      command: 'apply'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+      environmentServiceNameAzureRM: 'Ritesh-Dec25'
+      commandOptions: '-auto-approve'

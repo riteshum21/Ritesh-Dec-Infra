@@ -22,7 +22,7 @@ for_each = var.keyvault
       "Get",  "Create", "List",
     ]
     secret_permissions = [
-      "Get",  "Set", "List", "Delete",
+      "Get",  "Set", "List", "Delete", "Purge", "Recover"
     ]
     storage_permissions =[
       "Get",   "List",

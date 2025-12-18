@@ -272,7 +272,7 @@ vm = {
     public_ip_name       = "PIP3"
     nic_name             = "b-nic"
 
-    size     = "Standard_F2"
+    size     = "Standard_B2s"
     keyvault = "prskv12"
 
   script_name       = "nginx.sh"
